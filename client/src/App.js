@@ -7,6 +7,7 @@ import { Menu } from './pages/Menu';
 import { CartCheckout } from './pages/CartCheckout';
 import { Reservation } from './pages/Reservation';
 import { Profile } from './pages/Profile';
+import { About } from './pages/About';
 import { PrivateRoute } from './components/PrivateRoute';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="/cart" element={<PrivateRoute><CartCheckout /></PrivateRoute>} />
           <Route path="/reservation" element={<PrivateRoute><Reservation /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+          <Route path="/about" element={<PrivateRoute><About /></PrivateRoute>} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
