@@ -4,13 +4,16 @@ import { Trash2, Plus, Minus, ArrowRight, ArrowLeft, ShoppingBag } from "lucide-
 
 export const CartCheckout = () => {
   const navigate = useNavigate();
-  // Локальное состояние корзины (моковые данные для демонстрации)
   const [cart, setCart] = useState([
     { id: 1, name: "Шашлык из говядины", price: 450, quantity: 2, image: "https://via.placeholder.com/80" },
     { id: 2, name: "Люля-кебаб", price: 350, quantity: 1, image: "https://via.placeholder.com/80" },
   ]);
   const [orderType, setOrderType] = useState("Delivery");
-  const [paymentMethod, setPaymentMethod] = useState("Online");
+  const [address, setAddress] = useState("");
+  const [house, setHouse] = useState("");
+  const [apartment, setApartment] = useState("");
+  const [comment, setComment] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const updateCartQuantity = (id, delta) => {
     setCart(prev => prev.map(item => 
@@ -27,10 +30,14 @@ export const CartCheckout = () => {
   const handleCheckout = (e) => {
     e.preventDefault();
     if (cart.length === 0) return;
-    // Имитация заказа
-    const orderId = `ORD-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
-    alert(`Заказ ${orderId} успешно оформлен!`);
-    navigate("/menu");
+    setLoading(true);
+    // Имитация успешного заказа
+    setTimeout(() => {
+      alert("Заказ успешно оформлен! (демо-режим)");
+      setCart([]);
+      setLoading(false);
+      navigate("/profile");
+    }, 500);
   };
 
   if (cart.length === 0) {
@@ -110,7 +117,6 @@ export const CartCheckout = () => {
             <form onSubmit={handleCheckout} className="bg-phoenix-card rounded-3xl p-6 sm:p-8 shadow-md border border-phoenix-gold/20 sticky top-28">
               <h2 className="text-2xl font-bold text-phoenix-gold mb-6 pb-4 border-b border-phoenix-gold/20">Детали заказа</h2>
 
-              {/* Тип заказа */}
               <div className="flex bg-phoenix-dark p-1 rounded-2xl mb-8">
                 <button type="button" onClick={() => setOrderType("Delivery")} className={`flex-1 py-3 rounded-xl text-sm font-bold transition ${orderType === "Delivery" ? "bg-phoenix-gold text-phoenix-dark" : "text-phoenix-text-muted hover:text-phoenix-text"}`}>
                   Доставка
@@ -120,36 +126,28 @@ export const CartCheckout = () => {
                 </button>
               </div>
 
-              {/* Поля для доставки */}
               {orderType === "Delivery" && (
                 <div className="space-y-4 mb-8">
-                  <input type="text" required placeholder="Улица" className="w-full px-4 py-3 rounded-xl border border-phoenix-gold/30 bg-phoenix-dark text-phoenix-text focus:outline-none focus:ring-2 focus:ring-phoenix-gold" />
+                  <input type="text" required placeholder="Улица" value={address} onChange={e => setAddress(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-phoenix-gold/30 bg-phoenix-dark text-phoenix-text focus:outline-none focus:ring-2 focus:ring-phoenix-gold" />
                   <div className="grid grid-cols-2 gap-4">
-                    <input type="text" required placeholder="Дом" className="w-full px-4 py-3 rounded-xl border border-phoenix-gold/30 bg-phoenix-dark text-phoenix-text focus:outline-none focus:ring-2 focus:ring-phoenix-gold" />
-                    <input type="text" placeholder="Квартира" className="w-full px-4 py-3 rounded-xl border border-phoenix-gold/30 bg-phoenix-dark text-phoenix-text focus:outline-none focus:ring-2 focus:ring-phoenix-gold" />
+                    <input type="text" required placeholder="Дом" value={house} onChange={e => setHouse(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-phoenix-gold/30 bg-phoenix-dark text-phoenix-text focus:outline-none focus:ring-2 focus:ring-phoenix-gold" />
+                    <input type="text" placeholder="Квартира" value={apartment} onChange={e => setApartment(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-phoenix-gold/30 bg-phoenix-dark text-phoenix-text focus:outline-none focus:ring-2 focus:ring-phoenix-gold" />
                   </div>
-                  <input type="text" placeholder="Комментарий курьеру" className="w-full px-4 py-3 rounded-xl border border-phoenix-gold/30 bg-phoenix-dark text-phoenix-text focus:outline-none focus:ring-2 focus:ring-phoenix-gold" />
+                  <input type="text" placeholder="Комментарий курьеру" value={comment} onChange={e => setComment(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-phoenix-gold/30 bg-phoenix-dark text-phoenix-text focus:outline-none focus:ring-2 focus:ring-phoenix-gold" />
                 </div>
               )}
 
-              {/* Способы оплаты */}
+              {/* Способы оплаты (упрощённо) */}
               <div className="mb-8">
                 <h3 className="font-bold text-phoenix-text mb-4">Способ оплаты</h3>
                 <div className="space-y-3">
-                  {[
-                    { id: "Online", label: "Онлайн-оплата картой (имитация)" },
-                    { id: "Cash", label: "Наличными при получении" },
-                    { id: "Card", label: "Картой при получении" },
-                  ].map((method) => (
-                    <label key={method.id} className={`flex items-center p-4 border rounded-2xl cursor-pointer transition ${paymentMethod === method.id ? "border-phoenix-gold bg-phoenix-gold/10" : "border-phoenix-gold/30 hover:border-phoenix-gold/50"}`}>
-                      <input type="radio" name="payment" value={method.id} checked={paymentMethod === method.id} onChange={(e) => setPaymentMethod(e.target.value)} className="w-5 h-5 text-phoenix-gold focus:ring-phoenix-gold" />
-                      <span className="ml-3 font-medium text-phoenix-text">{method.label}</span>
-                    </label>
-                  ))}
+                  <label className="flex items-center p-4 border rounded-2xl border-phoenix-gold bg-phoenix-gold/10">
+                    <input type="radio" name="payment" defaultChecked className="w-5 h-5 text-phoenix-gold" />
+                    <span className="ml-3 font-medium text-phoenix-text">Онлайн-оплата (демо)</span>
+                  </label>
                 </div>
               </div>
 
-              {/* Итого */}
               <div className="border-t border-phoenix-gold/20 pt-6 mb-8 space-y-3">
                 <div className="flex justify-between text-phoenix-text-muted">
                   <span>Сумма заказа</span>
@@ -167,8 +165,8 @@ export const CartCheckout = () => {
                 </div>
               </div>
 
-              <button type="submit" className="w-full flex items-center justify-center bg-phoenix-gold text-phoenix-dark hover:bg-phoenix-gold-light py-4 rounded-full font-bold text-lg transition shadow-lg">
-                ОФОРМИТЬ ЗАКАЗ
+              <button type="submit" disabled={loading} className="w-full flex items-center justify-center bg-phoenix-gold text-phoenix-dark hover:bg-phoenix-gold-light py-4 rounded-full font-bold text-lg transition shadow-lg">
+                {loading ? "Обработка..." : "ОФОРМИТЬ ЗАКАЗ"}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </button>
             </form>
