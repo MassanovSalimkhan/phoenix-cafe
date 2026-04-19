@@ -66,14 +66,15 @@ export const Menu = () => {
 
   const filteredItems = menuItems.filter((item) => {
     const matchesCategory = activeCategory === "Все" || item.category_name === activeCategory;
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    const searchLower = searchQuery.toLowerCase().trim();
+    const matchesSearch = searchQuery === "" ||
+      item.name.toLowerCase().startsWith(searchLower) ||
+      (item.category_name && item.category_name.toLowerCase().startsWith(searchLower));
     return matchesCategory && matchesSearch;
   });
 
   if (loading) return <div className="bg-phoenix-dark min-h-screen flex items-center justify-center text-phoenix-text">Загрузка меню...</div>;
 
-  // Формируем список категорий для кнопок: ["Все", ...названия категорий]
   const categoryNames = ["Все", ...categories.map(cat => cat.name)];
 
   return (
