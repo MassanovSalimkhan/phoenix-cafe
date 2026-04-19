@@ -5,6 +5,7 @@ import api from '../api/api';
 import { Link } from 'react-router-dom';
 import { User, Calendar, LogOut, Clock, ShoppingBag, Eye, XCircle } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import ConfirmModal from '../components/ConfirmModal';
 
 export const Profile = () => {
   const { user } = useSelector(state => state.auth);
@@ -17,6 +18,11 @@ export const Profile = () => {
   const [selectedReservation, setSelectedReservation] = useState(null);
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [reservationModalOpen, setReservationModalOpen] = useState(false);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // 'cancelOrder' or 'cancelReservation'
+  const [confirmId, setConfirmId] = useState(null);
+  const [confirmTitle, setConfirmTitle] = useState('');
+  const [confirmMessage, setConfirmMessage] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,29 +77,48 @@ export const Profile = () => {
   };
 
   const cancelReservation = async (id) => {
-    if (window.confirm('Отменить бронирование?')) {
-      try {
-        await api.patch(`/reservations/reservations/${id}/`, { status: 'Canceled' });
-        setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'Canceled' } : r));
-        toast.success('Бронирование отменено', { position: 'bottom-right', style: { background: '#fbbf24', color: '#1a1a1a' } });
-      } catch (err) {
-        console.error('Ошибка отмены', err);
-        toast.error('Не удалось отменить бронирование', { position: 'bottom-right', style: { background: '#fbbf24', color: '#1a1a1a' } });
-      }
+    try {
+      await api.patch(`/reservations/reservations/${id}/`, { status: 'Canceled' });
+      setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'Canceled' } : r));
+      toast.success('Бронирование отменено', { position: 'bottom-right', style: { background: '#fbbf24', color: '#1a1a1a' } });
+    } catch (err) {
+      console.error('Ошибка отмены', err);
+      toast.error('Не удалось отменить бронирование', { position: 'bottom-right', style: { background: '#fbbf24', color: '#1a1a1a' } });
     }
   };
 
   const cancelOrder = async (id) => {
-    if (window.confirm('Отменить заказ?')) {
-      try {
-        await api.patch(`/orders/${id}/`, { status: 'Canceled' });
-        setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'Canceled' } : o));
-        toast.success('Заказ отменён', { position: 'bottom-right', style: { background: '#fbbf24', color: '#1a1a1a' } });
-      } catch (err) {
-        console.error('Ошибка отмены', err);
-        toast.error('Не удалось отменить заказ', { position: 'bottom-right', style: { background: '#fbbf24', color: '#1a1a1a' } });
-      }
+    try {
+      await api.patch(`/orders/${id}/`, { status: 'Canceled' });
+      setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'Canceled' } : o));
+      toast.success('Заказ отменён', { position: 'bottom-right', style: { background: '#fbbf24', color: '#1a1a1a' } });
+    } catch (err) {
+      console.error('Ошибка отмены', err);
+      toast.error('Не удалось отменить заказ', { position: 'bottom-right', style: { background: '#fbbf24', color: '#1a1a1a' } });
     }
+  };
+
+  const requestCancelOrder = (id) => {
+    setConfirmAction(() => () => cancelOrder(id));
+    setConfirmId(id);
+    setConfirmTitle('Отмена заказа');
+    setConfirmMessage('Вы уверены, что хотите отменить этот заказ?');
+    setConfirmModalOpen(true);
+  };
+
+  const requestCancelReservation = (id) => {
+    setConfirmAction(() => () => cancelReservation(id));
+    setConfirmId(id);
+    setConfirmTitle('Отмена бронирования');
+    setConfirmMessage('Вы уверены, что хотите отменить бронирование?');
+    setConfirmModalOpen(true);
+  };
+
+  const handleConfirm = () => {
+    if (confirmAction) confirmAction();
+    setConfirmModalOpen(false);
+    setConfirmAction(null);
+    setConfirmId(null);
   };
 
   const viewOrderDetails = (order) => {
@@ -111,8 +136,17 @@ export const Profile = () => {
   return (
     <div className="bg-phoenix-dark min-h-screen py-12">
       <Toaster />
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={handleConfirm}
+        title={confirmTitle}
+        message={confirmMessage}
+        confirmText="Да, отменить"
+        cancelText="Нет"
+      />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Карточка профиля */}
+        {/* Карточка профиля (без изменений) */}
         <div className="bg-phoenix-card rounded-2xl shadow-xl border border-phoenix-gold/20 overflow-hidden mb-8">
           <div className="bg-gradient-to-r from-phoenix-gold/10 to-transparent px-8 py-6 border-b border-phoenix-gold/20">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -178,7 +212,7 @@ export const Profile = () => {
                             <div className="text-right"><p className="text-phoenix-gold font-bold text-xl">{order.total_amount} сом</p></div>
                             <button onClick={() => viewOrderDetails(order)} className="text-phoenix-gold hover:bg-phoenix-gold/20 p-2 rounded-full transition"><Eye className="w-5 h-5" /></button>
                             {(order.status === 'New' || order.status === 'Preparing') && (
-                              <button onClick={() => cancelOrder(order.id)} className="text-red-400 hover:bg-red-500/20 p-2 rounded-full transition"><XCircle className="w-5 h-5" /></button>
+                              <button onClick={() => requestCancelOrder(order.id)} className="text-red-400 hover:bg-red-500/20 p-2 rounded-full transition"><XCircle className="w-5 h-5" /></button>
                             )}
                           </div>
                         </div>
@@ -208,7 +242,7 @@ export const Profile = () => {
                           <div className="flex items-center gap-2">
                             <div className="text-right"><Clock className="w-5 h-5 text-phoenix-gold inline mr-1" /><span className="text-phoenix-text-muted text-sm">{res.start_time}</span></div>
                             <button onClick={() => viewReservationDetails(res)} className="text-phoenix-gold hover:bg-phoenix-gold/20 p-2 rounded-full transition"><Eye className="w-5 h-5" /></button>
-                            {canCancel && <button onClick={() => cancelReservation(res.id)} className="text-red-400 hover:bg-red-500/20 p-2 rounded-full transition"><XCircle className="w-5 h-5" /></button>}
+                            {canCancel && <button onClick={() => requestCancelReservation(res.id)} className="text-red-400 hover:bg-red-500/20 p-2 rounded-full transition"><XCircle className="w-5 h-5" /></button>}
                           </div>
                         </div>
                       );

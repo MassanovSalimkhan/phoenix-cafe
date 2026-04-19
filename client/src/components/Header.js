@@ -31,7 +31,7 @@ export const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         {/* Логотип */}
         <Link to="/" className="flex items-center space-x-2" onClick={() => setMobileMenuOpen(false)}>
-          <img src="/logo.png" alt="Логотип" className="h-8 w-auto" />
+          <img src="/logo.png" alt="Логотип" className="h-20 w-auto" />
           <span className="text-2xl font-bold text-phoenix-gold tracking-wide">ФЕНИКС</span>
         </Link>
 
