@@ -3,6 +3,7 @@ import { format, addDays } from "date-fns";
 import { ArrowLeft, Calendar, Clock, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/api";
+import toast, { Toaster } from 'react-hot-toast';
 
 export const Reservation = () => {
   const navigate = useNavigate();
@@ -34,7 +35,7 @@ export const Reservation = () => {
   const handleReservation = async (e) => {
     e.preventDefault();
     if (!selectedTable) {
-      alert("Выберите стол");
+      toast.error("Выберите стол", { position: 'bottom-right', style: { background: '#fbbf24', color: '#1a1a1a' } });
       return;
     }
     setLoading(true);
@@ -51,10 +52,17 @@ export const Reservation = () => {
         comment: requests,
       };
       const response = await api.post("/reservations/reservations/", payload);
-      alert(`Бронь ${response.data.id} создана`);
+      toast.success(`Бронь ${response.data.id} создана!`, {
+        position: 'bottom-right',
+        duration: 4000,
+        style: { background: '#fbbf24', color: '#1a1a1a' },
+      });
       navigate("/");
     } catch (error) {
-      alert(error.response?.status === 409 ? "Стол уже занят" : "Ошибка бронирования");
+      toast.error(error.response?.status === 409 ? "Стол уже занят" : "Ошибка бронирования", {
+        position: 'bottom-right',
+        style: { background: '#fbbf24', color: '#1a1a1a' },
+      });
     } finally {
       setLoading(false);
     }
@@ -64,6 +72,7 @@ export const Reservation = () => {
 
   return (
     <div className="bg-phoenix-dark min-h-screen py-12">
+      <Toaster />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4 mb-12">
           <Link to="/" className="text-phoenix-text-muted hover:text-phoenix-gold transition">

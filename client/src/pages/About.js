@@ -38,7 +38,7 @@ export const About = () => {
           <div className="text-center bg-phoenix-card p-6 rounded-2xl border border-phoenix-gold/20">
             <Utensils className="w-12 h-12 text-phoenix-gold mx-auto mb-4" />
             <h3 className="text-xl font-bold text-phoenix-text mb-2">Авторская кухня</h3>
-            <p className="text-phoenix-text-muted">Блюда восточной и европейской кухни от нашего шеф-повара</p>
+            <p className="text-phoenix-text-muted">Блюда восточной и европейской кухни от наших поваров</p>
           </div>
           <div className="text-center bg-phoenix-card p-6 rounded-2xl border border-phoenix-gold/20">
             <Coffee className="w-12 h-12 text-phoenix-gold mx-auto mb-4" />

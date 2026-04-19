@@ -5,7 +5,7 @@ import { useAppContext } from "../context/AppContext";
 import toast, { Toaster } from 'react-hot-toast';
 import DishModal from "../components/DishModal";
 
-const DishCard = ({ dish, onClick }) => (
+const DishCard = ({ dish, onClick, onAddToCart }) => (
   <div onClick={() => onClick(dish)} className="bg-phoenix-card rounded-xl shadow-md overflow-hidden transition hover:scale-105 hover:shadow-xl border border-phoenix-gold/20 cursor-pointer">
     <img src={dish.image_url || "https://via.placeholder.com/300x200"} alt={dish.name} className="w-full h-48 object-cover" />
     <div className="p-4">
@@ -13,7 +13,12 @@ const DishCard = ({ dish, onClick }) => (
       <p className="text-phoenix-text-muted text-sm mt-1 line-clamp-2">{dish.description}</p>
       <div className="flex justify-between items-center mt-4">
         <span className="font-bold text-phoenix-gold text-lg">{dish.price} сом</span>
-        <button className="bg-phoenix-gold text-phoenix-dark hover:bg-phoenix-gold-light px-4 py-2 rounded-full text-sm font-bold transition" onClick={(e) => { e.stopPropagation(); }}>В корзину</button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onAddToCart(dish); }}
+          className="bg-phoenix-gold text-phoenix-dark hover:bg-phoenix-gold-light px-4 py-2 rounded-full text-sm font-bold transition"
+        >
+          В корзину
+        </button>
       </div>
     </div>
   </div>

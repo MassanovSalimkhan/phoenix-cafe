@@ -3,7 +3,8 @@ import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../store/authSlice';
 import api from '../api/api';
 import { Link } from 'react-router-dom';
-import { User, Calendar, LogOut, Clock, ShoppingBag, Eye, XCircle  } from 'lucide-react';
+import { User, Calendar, LogOut, Clock, ShoppingBag, Eye, XCircle } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
 
 export const Profile = () => {
   const { user } = useSelector(state => state.auth);
@@ -13,7 +14,9 @@ export const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('orders');
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
+  const [orderModalOpen, setOrderModalOpen] = useState(false);
+  const [reservationModalOpen, setReservationModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,23 +75,42 @@ export const Profile = () => {
       try {
         await api.patch(`/reservations/reservations/${id}/`, { status: 'Canceled' });
         setReservations(prev => prev.map(r => r.id === id ? { ...r, status: 'Canceled' } : r));
-        alert('Бронирование отменено');
+        toast.success('Бронирование отменено', { position: 'bottom-right', style: { background: '#fbbf24', color: '#1a1a1a' } });
       } catch (err) {
         console.error('Ошибка отмены', err);
-        alert('Не удалось отменить');
+        toast.error('Не удалось отменить бронирование', { position: 'bottom-right', style: { background: '#fbbf24', color: '#1a1a1a' } });
+      }
+    }
+  };
+
+  const cancelOrder = async (id) => {
+    if (window.confirm('Отменить заказ?')) {
+      try {
+        await api.patch(`/orders/${id}/`, { status: 'Canceled' });
+        setOrders(prev => prev.map(o => o.id === id ? { ...o, status: 'Canceled' } : o));
+        toast.success('Заказ отменён', { position: 'bottom-right', style: { background: '#fbbf24', color: '#1a1a1a' } });
+      } catch (err) {
+        console.error('Ошибка отмены', err);
+        toast.error('Не удалось отменить заказ', { position: 'bottom-right', style: { background: '#fbbf24', color: '#1a1a1a' } });
       }
     }
   };
 
   const viewOrderDetails = (order) => {
     setSelectedOrder(order);
-    setModalOpen(true);
+    setOrderModalOpen(true);
+  };
+
+  const viewReservationDetails = (reservation) => {
+    setSelectedReservation(reservation);
+    setReservationModalOpen(true);
   };
 
   if (loading) return <div className="bg-phoenix-dark min-h-screen flex items-center justify-center"><div className="animate-pulse text-phoenix-gold">Загрузка...</div></div>;
 
   return (
     <div className="bg-phoenix-dark min-h-screen py-12">
+      <Toaster />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Карточка профиля */}
         <div className="bg-phoenix-card rounded-2xl shadow-xl border border-phoenix-gold/20 overflow-hidden mb-8">
@@ -152,9 +174,12 @@ export const Profile = () => {
                             <div className="flex items-center gap-2"><span className="text-phoenix-text font-semibold">Заказ #{order.id}</span><span className={`text-xs px-2 py-1 rounded-full border ${badge.color}`}>{badge.label}</span></div>
                             <p className="text-phoenix-text-muted text-sm mt-1">{new Date(order.created_at).toLocaleString()}</p>
                           </div>
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
                             <div className="text-right"><p className="text-phoenix-gold font-bold text-xl">{order.total_amount} сом</p></div>
                             <button onClick={() => viewOrderDetails(order)} className="text-phoenix-gold hover:bg-phoenix-gold/20 p-2 rounded-full transition"><Eye className="w-5 h-5" /></button>
+                            {(order.status === 'New' || order.status === 'Preparing') && (
+                              <button onClick={() => cancelOrder(order.id)} className="text-red-400 hover:bg-red-500/20 p-2 rounded-full transition"><XCircle className="w-5 h-5" /></button>
+                            )}
                           </div>
                         </div>
                       );
@@ -180,8 +205,9 @@ export const Profile = () => {
                             <p className="text-phoenix-text-muted text-sm mt-1">{res.date} в {res.start_time}</p>
                             <p className="text-phoenix-text-muted text-sm">Гостей: {res.guests}</p>
                           </div>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
                             <div className="text-right"><Clock className="w-5 h-5 text-phoenix-gold inline mr-1" /><span className="text-phoenix-text-muted text-sm">{res.start_time}</span></div>
+                            <button onClick={() => viewReservationDetails(res)} className="text-phoenix-gold hover:bg-phoenix-gold/20 p-2 rounded-full transition"><Eye className="w-5 h-5" /></button>
                             {canCancel && <button onClick={() => cancelReservation(res.id)} className="text-red-400 hover:bg-red-500/20 p-2 rounded-full transition"><XCircle className="w-5 h-5" /></button>}
                           </div>
                         </div>
@@ -196,10 +222,10 @@ export const Profile = () => {
       </div>
 
       {/* Модальное окно деталей заказа */}
-      {modalOpen && selectedOrder && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setModalOpen(false)}>
+      {orderModalOpen && selectedOrder && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setOrderModalOpen(false)}>
           <div className="bg-phoenix-card rounded-2xl max-w-md w-full p-6 border border-phoenix-gold/20" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4"><h3 className="text-xl font-bold text-phoenix-gold">Детали заказа #{selectedOrder.id}</h3><button onClick={() => setModalOpen(false)} className="text-phoenix-text-muted hover:text-phoenix-gold">&times;</button></div>
+            <div className="flex justify-between items-center mb-4"><h3 className="text-xl font-bold text-phoenix-gold">Детали заказа #{selectedOrder.id}</h3><button onClick={() => setOrderModalOpen(false)} className="text-phoenix-text-muted hover:text-phoenix-gold">&times;</button></div>
             <div className="space-y-3 text-phoenix-text">
               <p><span className="text-phoenix-text-muted">Дата:</span> {new Date(selectedOrder.created_at).toLocaleString()}</p>
               <p><span className="text-phoenix-text-muted">Сумма:</span> {selectedOrder.total_amount} сом</p>
@@ -211,7 +237,26 @@ export const Profile = () => {
                 {selectedOrder.items?.map(item => <li key={item.id}>{item.dish_name} – {item.quantity} шт. x {item.price_at_time} сом = {item.quantity * item.price_at_time} сом</li>)}
               </ul></div>
             </div>
-            <button onClick={() => setModalOpen(false)} className="mt-6 w-full bg-phoenix-gold text-phoenix-dark py-2 rounded-full font-bold">Закрыть</button>
+            <button onClick={() => setOrderModalOpen(false)} className="mt-6 w-full bg-phoenix-gold text-phoenix-dark py-2 rounded-full font-bold">Закрыть</button>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно деталей бронирования */}
+      {reservationModalOpen && selectedReservation && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setReservationModalOpen(false)}>
+          <div className="bg-phoenix-card rounded-2xl max-w-md w-full p-6 border border-phoenix-gold/20" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4"><h3 className="text-xl font-bold text-phoenix-gold">Детали бронирования</h3><button onClick={() => setReservationModalOpen(false)} className="text-phoenix-text-muted hover:text-phoenix-gold">&times;</button></div>
+            <div className="space-y-3 text-phoenix-text">
+              <p><span className="text-phoenix-text-muted">Зона:</span> {selectedReservation.zone_name}</p>
+              <p><span className="text-phoenix-text-muted">Стол:</span> {selectedReservation.table_number}</p>
+              <p><span className="text-phoenix-text-muted">Дата:</span> {selectedReservation.date}</p>
+              <p><span className="text-phoenix-text-muted">Время:</span> {selectedReservation.start_time}</p>
+              <p><span className="text-phoenix-text-muted">Гостей:</span> {selectedReservation.guests}</p>
+              <p><span className="text-phoenix-text-muted">Статус:</span> {getReservationStatusBadge(selectedReservation.status).label}</p>
+              {selectedReservation.comment && <p><span className="text-phoenix-text-muted">Пожелания:</span> {selectedReservation.comment}</p>}
+            </div>
+            <button onClick={() => setReservationModalOpen(false)} className="mt-6 w-full bg-phoenix-gold text-phoenix-dark py-2 rounded-full font-bold">Закрыть</button>
           </div>
         </div>
       )}
