@@ -20,7 +20,7 @@ export const Profile = () => {
   const [reservationModalOpen, setReservationModalOpen] = useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null); // 'cancelOrder' or 'cancelReservation'
-  const [confirmId, setConfirmId] = useState(null);
+  const [ setConfirmId ] = useState(null);
   const [confirmTitle, setConfirmTitle] = useState('');
   const [confirmMessage, setConfirmMessage] = useState('');
 

@@ -9,6 +9,10 @@ import { Reservation } from './pages/Reservation';
 import { Profile } from './pages/Profile';
 import { About } from './pages/About';
 import { PrivateRoute } from './components/PrivateRoute';
+import { ManagerRoute } from './components/ManagerRoute';
+import { AdminOrders } from './pages/AdminOrders';
+import { AdminMenu } from './pages/AdminMenu';
+import { AdminReservations } from './pages/AdminReservations';
 
 function App() {
   return (
@@ -21,6 +25,10 @@ function App() {
           <Route path="/reservation" element={<PrivateRoute><Reservation /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/about" element={<PrivateRoute><About /></PrivateRoute>} />
+          {/* Админка доступна менеджеру и администратору */}
+          <Route path="/admin/orders" element={<ManagerRoute><AdminOrders /></ManagerRoute>} />
+          <Route path="/admin/menu" element={<ManagerRoute><AdminMenu /></ManagerRoute>} />
+          <Route path="/admin/reservations" element={<ManagerRoute><AdminReservations /></ManagerRoute>} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
