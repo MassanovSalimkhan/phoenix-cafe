@@ -24,28 +24,31 @@ const DishCard = ({ dish, onClick, onAddToCart }) => (
   </div>
 );
 
-const CATEGORIES = ["Все", "Рекомендация", "Восточные", "Пицца", "Шашлык", "Напитки"];
-
 export const Menu = () => {
   const { addToCart } = useAppContext();
   const [menuItems, setMenuItems] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState("Все");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [selectedDish, setSelectedDish] = useState(null);
 
   useEffect(() => {
-    const fetchDishes = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get('/menu/dishes/');
-        setMenuItems(res.data);
+        const [dishesRes, categoriesRes] = await Promise.all([
+          api.get('/menu/dishes/'),
+          api.get('/menu/categories/')
+        ]);
+        setMenuItems(dishesRes.data);
+        setCategories(categoriesRes.data);
       } catch (err) {
-        console.error("Ошибка загрузки меню", err);
+        console.error("Ошибка загрузки данных", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchDishes();
+    fetchData();
   }, []);
 
   const handleAddToCart = (dish) => {
@@ -70,6 +73,9 @@ export const Menu = () => {
 
   if (loading) return <div className="bg-phoenix-dark min-h-screen flex items-center justify-center text-phoenix-text">Загрузка меню...</div>;
 
+  // Формируем список категорий для кнопок: ["Все", ...названия категорий]
+  const categoryNames = ["Все", ...categories.map(cat => cat.name)];
+
   return (
     <div className="bg-phoenix-dark min-h-screen py-12">
       <Toaster />
@@ -87,9 +93,9 @@ export const Menu = () => {
 
         <div className="sticky top-20 z-40 bg-phoenix-dark/95 backdrop-blur-md py-4 mb-8 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-phoenix-gold/20">
           <div className="flex overflow-x-auto hide-scrollbar justify-start md:flex-wrap md:justify-start items-center space-x-2 md:space-x-3 gap-y-3 pb-2">
-            {CATEGORIES.map(category => (
-              <button key={category} onClick={() => setActiveCategory(category)} className={`whitespace-nowrap px-6 py-2 rounded-full text-sm font-semibold transition-all shadow-sm ${activeCategory === category ? "bg-phoenix-gold text-phoenix-dark" : "bg-phoenix-card text-phoenix-text-muted hover:bg-phoenix-gold/20 border border-phoenix-gold/30"}`}>
-                {category}
+            {categoryNames.map(catName => (
+              <button key={catName} onClick={() => setActiveCategory(catName)} className={`whitespace-nowrap px-6 py-2 rounded-full text-sm font-semibold transition-all shadow-sm ${activeCategory === catName ? "bg-phoenix-gold text-phoenix-dark" : "bg-phoenix-card text-phoenix-text-muted hover:bg-phoenix-gold/20 border border-phoenix-gold/30"}`}>
+                {catName}
               </button>
             ))}
           </div>
