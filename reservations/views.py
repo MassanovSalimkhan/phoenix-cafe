@@ -13,6 +13,7 @@ class ZoneListView(generics.ListAPIView):
 class TableListView(generics.ListAPIView):
     serializer_class = TableSerializer
     permission_classes = [permissions.AllowAny]
+    authentication_classes = [] 
     def get_queryset(self):
         zone_id = self.request.query_params.get('zone_id')
         if zone_id:
