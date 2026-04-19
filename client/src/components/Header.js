@@ -47,7 +47,7 @@ export const Header = () => {
                 <ShoppingCart className="w-5 h-5" />
                 {cartItemsCount > 0 && <span className="absolute -top-2 -right-2 bg-phoenix-gold text-phoenix-dark text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{cartItemsCount}</span>}
               </Link>
-              {(user?.role === 'manager' || user?.role === 'admin') && (
+              {user?.role === 'manager' && (
                 <Link to="/admin/orders" className="text-phoenix-text-muted hover:text-phoenix-gold transition">Админка</Link>
               )}
               <Link to="/profile" className={`${isActive('/profile')} transition`}>{user?.full_name || 'Профиль'}</Link>
@@ -84,7 +84,7 @@ export const Header = () => {
           {isAuthenticated && (
             <>
               <Link to="/profile" className={`block py-2 ${isActive('/profile')} transition`} onClick={toggleMobileMenu}>Профиль</Link>
-              {(user?.role === 'manager' || user?.role === 'admin') && (
+              {user?.role === 'manager' && (
                 <Link to="/admin/orders" className="block py-2 text-phoenix-text-muted hover:text-phoenix-gold" onClick={toggleMobileMenu}>Админка</Link>
               )}
               <button onClick={() => { handleLogout(); toggleMobileMenu(); }} className="block w-full text-left py-2 text-red-400">Выйти</button>

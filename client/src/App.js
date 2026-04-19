@@ -25,7 +25,6 @@ function App() {
           <Route path="/reservation" element={<PrivateRoute><Reservation /></PrivateRoute>} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/about" element={<PrivateRoute><About /></PrivateRoute>} />
-          {/* Админка доступна менеджеру и администратору */}
           <Route path="/admin/orders" element={<ManagerRoute><AdminOrders /></ManagerRoute>} />
           <Route path="/admin/menu" element={<ManagerRoute><AdminMenu /></ManagerRoute>} />
           <Route path="/admin/reservations" element={<ManagerRoute><AdminReservations /></ManagerRoute>} />

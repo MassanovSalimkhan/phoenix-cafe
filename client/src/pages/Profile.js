@@ -19,8 +19,8 @@ export const Profile = () => {
   const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [reservationModalOpen, setReservationModalOpen] = useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // 'cancelOrder' or 'cancelReservation'
-  const [ setConfirmId ] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [confirmId, setConfirmId] = useState(null);
   const [confirmTitle, setConfirmTitle] = useState('');
   const [confirmMessage, setConfirmMessage] = useState('');
 
@@ -146,7 +146,7 @@ export const Profile = () => {
         cancelText="Нет"
       />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Карточка профиля (без изменений) */}
+        {/* Карточка профиля */}
         <div className="bg-phoenix-card rounded-2xl shadow-xl border border-phoenix-gold/20 overflow-hidden mb-8">
           <div className="bg-gradient-to-r from-phoenix-gold/10 to-transparent px-8 py-6 border-b border-phoenix-gold/20">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
