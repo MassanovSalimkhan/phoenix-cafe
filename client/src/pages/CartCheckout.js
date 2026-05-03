@@ -100,18 +100,23 @@ export const CartCheckout = () => {
 
   // форматирование номера карты (оставляем как было)
   const formatCardNumber = (value) => {
-    const v = value.replace(/\s/g, '').replace(/[^0-9]/g, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = matches && matches[0];
-    const parts = [];
-    for (let i = 0; i < match.length; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-    if (parts.length) return parts.join(' ');
-    return value;
-  };
+  if (!value) return '';  // защита от null/undefined
+  const v = String(value).replace(/\s/g, '').replace(/[^0-9]/g, '');
+  const matches = v.match(/\d{4,16}/g);
+  const match = matches && matches[0] || '';
+  const parts = [];
+  for (let i = 0; i < match.length; i += 4) {
+    parts.push(match.substring(i, i + 4));
+  }
+  if (parts.length) return parts.join(' ');
+  return value;
+};
 
-  const handleCardNumberChange = (e) => setCardNumber(formatCardNumber(e.target.value));
+  const handleCardNumberChange = (e) => {
+  const value = e.target.value || '';  // защита от null
+  const formatted = formatCardNumber(value);
+  setCardNumber(formatted);
+};
   const handleCardExpiryChange = (e) => {
     let value = e.target.value.replace(/[^0-9]/g, '');
     if (value.length >= 2) value = value.slice(0, 2) + '/' + value.slice(2, 4);

@@ -20,7 +20,6 @@ export const Profile = () => {
   const [reservationModalOpen, setReservationModalOpen] = useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
-  const [confirmId, setConfirmId] = useState(null);
   const [confirmTitle, setConfirmTitle] = useState('');
   const [confirmMessage, setConfirmMessage] = useState('');
 
@@ -98,9 +97,16 @@ export const Profile = () => {
     }
   };
 
+  const canCancelOrder = (order) => {
+    if (order.status !== 'New' && order.status !== 'Preparing') return false;
+    const createdAt = new Date(order.created_at);
+    const now = new Date();
+    const diffMinutes = (now - createdAt) / (1000 * 60);
+    return diffMinutes <= 5;
+  };
+
   const requestCancelOrder = (id) => {
     setConfirmAction(() => () => cancelOrder(id));
-    setConfirmId(id);
     setConfirmTitle('Отмена заказа');
     setConfirmMessage('Вы уверены, что хотите отменить этот заказ?');
     setConfirmModalOpen(true);
@@ -108,7 +114,6 @@ export const Profile = () => {
 
   const requestCancelReservation = (id) => {
     setConfirmAction(() => () => cancelReservation(id));
-    setConfirmId(id);
     setConfirmTitle('Отмена бронирования');
     setConfirmMessage('Вы уверены, что хотите отменить бронирование?');
     setConfirmModalOpen(true);
@@ -118,7 +123,6 @@ export const Profile = () => {
     if (confirmAction) confirmAction();
     setConfirmModalOpen(false);
     setConfirmAction(null);
-    setConfirmId(null);
   };
 
   const viewOrderDetails = (order) => {
@@ -146,7 +150,7 @@ export const Profile = () => {
         cancelText="Нет"
       />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Карточка профиля */}
+        {/* Карточка профиля (без изменений) */}
         <div className="bg-phoenix-card rounded-2xl shadow-xl border border-phoenix-gold/20 overflow-hidden mb-8">
           <div className="bg-gradient-to-r from-phoenix-gold/10 to-transparent px-8 py-6 border-b border-phoenix-gold/20">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -205,13 +209,16 @@ export const Profile = () => {
                       return (
                         <div key={order.id} className="bg-phoenix-dark rounded-xl p-5 border border-phoenix-gold/20 hover:border-phoenix-gold/40 transition flex flex-wrap justify-between items-center gap-3">
                           <div>
-                            <div className="flex items-center gap-2"><span className="text-phoenix-text font-semibold">Заказ #{order.id}</span><span className={`text-xs px-2 py-1 rounded-full border ${badge.color}`}>{badge.label}</span></div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-phoenix-text font-semibold">Заказ №{order.user_order_number}</span>
+                              <span className={`text-xs px-2 py-1 rounded-full border ${badge.color}`}>{badge.label}</span>
+                            </div>
                             <p className="text-phoenix-text-muted text-sm mt-1">{new Date(order.created_at).toLocaleString()}</p>
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="text-right"><p className="text-phoenix-gold font-bold text-xl">{order.total_amount} сом</p></div>
                             <button onClick={() => viewOrderDetails(order)} className="text-phoenix-gold hover:bg-phoenix-gold/20 p-2 rounded-full transition"><Eye className="w-5 h-5" /></button>
-                            {(order.status === 'New' || order.status === 'Preparing') && (
+                            {canCancelOrder(order) && (
                               <button onClick={() => requestCancelOrder(order.id)} className="text-red-400 hover:bg-red-500/20 p-2 rounded-full transition"><XCircle className="w-5 h-5" /></button>
                             )}
                           </div>
@@ -259,7 +266,7 @@ export const Profile = () => {
       {orderModalOpen && selectedOrder && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" onClick={() => setOrderModalOpen(false)}>
           <div className="bg-phoenix-card rounded-2xl max-w-md w-full p-6 border border-phoenix-gold/20" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4"><h3 className="text-xl font-bold text-phoenix-gold">Детали заказа #{selectedOrder.id}</h3><button onClick={() => setOrderModalOpen(false)} className="text-phoenix-text-muted hover:text-phoenix-gold">&times;</button></div>
+            <div className="flex justify-between items-center mb-4"><h3 className="text-xl font-bold text-phoenix-gold">Детали заказа #{selectedOrder.user_order_number}</h3><button onClick={() => setOrderModalOpen(false)} className="text-phoenix-text-muted hover:text-phoenix-gold">&times;</button></div>
             <div className="space-y-3 text-phoenix-text">
               <p><span className="text-phoenix-text-muted">Дата:</span> {new Date(selectedOrder.created_at).toLocaleString()}</p>
               <p><span className="text-phoenix-text-muted">Сумма:</span> {selectedOrder.total_amount} сом</p>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { format, addDays } from "date-fns";
 import { ArrowLeft, Calendar, Clock, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
@@ -16,6 +16,7 @@ export const Reservation = () => {
   const [guests, setGuests] = useState(2);
   const [requests, setRequests] = useState("");
   const [loading, setLoading] = useState(false);
+  const [availabilityMap, setAvailabilityMap] = useState({});
 
   useEffect(() => {
     api.get("/reservations/zones/").then(res => {
@@ -26,11 +27,42 @@ export const Reservation = () => {
 
   useEffect(() => {
     if (!selectedZone) return;
-    api.get(`/reservations/tables/?zone_id=${selectedZone}`).then(res => {
-      setTables(res.data);
-      setSelectedTable(null);
-    }).catch(err => console.error("Ошибка столов:", err));
+    const fetchTables = async () => {
+      try {
+        const res = await api.get(`/reservations/tables/?zone_id=${selectedZone}`);
+        setTables(res.data);
+        setSelectedTable(null);
+      } catch (err) {
+        console.error("Ошибка столов:", err);
+      }
+    };
+    fetchTables();
   }, [selectedZone]);
+
+  const checkAllTables = useCallback(async () => {
+    if (!tables.length || !date || !time) return;
+    try {
+      const checks = await Promise.all(
+        tables.map(table =>
+          api.get('/reservations/availability/', {
+            params: { table_id: table.id, date, start_time: time }
+          }).then(res => ({ id: table.id, available: res.data.available }))
+            .catch(() => ({ id: table.id, available: false }))
+        )
+      );
+      const map = {};
+      checks.forEach(c => { map[c.id] = c.available; });
+      setAvailabilityMap(map);
+    } catch (err) {
+      console.error("Ошибка проверки доступности", err);
+    }
+  }, [tables, date, time]);
+
+  useEffect(() => {
+    if (tables.length && date && time) {
+      checkAllTables();
+    }
+  }, [date, time, tables.length, checkAllTables]);
 
   const handleReservation = async (e) => {
     e.preventDefault();
@@ -82,9 +114,7 @@ export const Reservation = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Левая колонка: зоны и столы */}
           <div className="space-y-8">
-            {/* Зоны */}
             <div className="bg-phoenix-card rounded-3xl p-6 shadow-md border border-phoenix-gold/20">
               <h3 className="text-xl font-bold text-phoenix-gold mb-6">1. Выберите зону</h3>
               <div className="flex flex-wrap gap-3">
@@ -104,23 +134,17 @@ export const Reservation = () => {
               </div>
             </div>
 
-            {/* Столы */}
             <div className="bg-phoenix-card rounded-3xl p-6 shadow-md border border-phoenix-gold/20">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-xl font-bold text-phoenix-gold">2. Выберите столик</h3>
                 <div className="flex gap-4 text-xs font-medium text-phoenix-text-muted">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>Свободен
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>Занят
-                  </div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-green-500"></div>Свободен</div>
+                  <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500"></div>Занят</div>
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {tables.map(table => {
-                  // Временно все столы считаем свободными, позже добавим проверку доступности
-                  const isAvailable = true; // TODO: получать с бэка
+                  const isAvailable = availabilityMap[table.id] ?? true;
                   return (
                     <button
                       key={table.id}
@@ -143,7 +167,6 @@ export const Reservation = () => {
             </div>
           </div>
 
-          {/* Правая колонка: форма деталей */}
           <div className="bg-phoenix-card rounded-3xl p-6 shadow-md border border-phoenix-gold/20 sticky top-28">
             <h3 className="text-xl font-bold text-phoenix-gold mb-6 pb-4 border-b border-phoenix-gold/20">3. Детали бронирования</h3>
             <form onSubmit={handleReservation} className="space-y-6">

@@ -3,7 +3,7 @@ import api from '../api/api';
 import { Eye, RefreshCw } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
-export const AdminOrders = () => {
+export const ManagerOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
@@ -78,7 +78,9 @@ export const AdminOrders = () => {
               <option value="Delivered">Доставлены</option>
               <option value="Canceled">Отменены</option>
             </select>
-            <button onClick={fetchOrders} className="bg-phoenix-card border border-phoenix-gold/30 rounded-xl p-2 text-phoenix-gold hover:bg-phoenix-gold/20"><RefreshCw className="w-5 h-5" /></button>
+            <button onClick={fetchOrders} className="bg-phoenix-card border border-phoenix-gold/30 rounded-xl p-2 text-phoenix-gold hover:bg-phoenix-gold/20">
+              <RefreshCw className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
@@ -108,12 +110,16 @@ export const AdminOrders = () => {
                     <option value="Delivered">Доставлен</option>
                     <option value="Canceled">Отменён</option>
                   </select>
-                  <button onClick={() => setSelectedOrder(order)} className="text-phoenix-gold hover:bg-phoenix-gold/20 p-2 rounded-full"><Eye className="w-5 h-5" /></button>
+                  <button onClick={() => setSelectedOrder(order)} className="text-phoenix-gold hover:bg-phoenix-gold/20 p-2 rounded-full">
+                    <Eye className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             </div>
           ))}
-          {filteredOrders.length === 0 && <div className="text-center py-12 text-phoenix-text-muted">Нет заказов</div>}
+          {filteredOrders.length === 0 && (
+            <div className="text-center py-12 text-phoenix-text-muted">Нет заказов</div>
+          )}
         </div>
       </div>
 
@@ -131,11 +137,15 @@ export const AdminOrders = () => {
               {selectedOrder.comment && <p><span className="text-phoenix-text-muted">Комментарий:</span> {selectedOrder.comment}</p>}
               <div><span className="text-phoenix-text-muted">Состав:</span>
                 <ul className="list-disc list-inside mt-1">
-                  {selectedOrder.items?.map(item => <li key={item.id}>{item.dish_name} – {item.quantity} шт. x {item.price_at_time} сом</li>)}
+                  {selectedOrder.items?.map(item => (
+                    <li key={item.id}>{item.dish_name} – {item.quantity} шт. x {item.price_at_time} сом</li>
+                  ))}
                 </ul>
               </div>
             </div>
-            <button onClick={() => setSelectedOrder(null)} className="mt-6 w-full bg-phoenix-gold text-phoenix-dark py-2 rounded-full font-bold">Закрыть</button>
+            <button onClick={() => setSelectedOrder(null)} className="mt-6 w-full bg-phoenix-gold text-phoenix-dark py-2 rounded-full font-bold">
+              Закрыть
+            </button>
           </div>
         </div>
       )}

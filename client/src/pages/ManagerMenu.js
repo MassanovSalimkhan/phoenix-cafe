@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '../api/api';
 import { Plus, Edit2, Trash2, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import ConfirmModal from '../components/ConfirmModal';
 
-export const AdminMenu = () => {
+export const ManagerMenu = () => {
   const [categories, setCategories] = useState([]);
   const [dishes, setDishes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,12 +12,12 @@ export const AdminMenu = () => {
   const [editingCategory, setEditingCategory] = useState(null);
   const [formData, setFormData] = useState({ name: '', description: '', price: '', weight: '', category: '', image_url: '', is_available: true });
   const [categoryForm, setCategoryForm] = useState({ name: '', description: '', sort_order: 0 });
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [confirmTitle, setConfirmTitle] = useState('');
+  const [confirmMessage, setConfirmMessage] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [catsRes, dishesRes] = await Promise.all([
@@ -31,7 +32,11 @@ export const AdminMenu = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const toggleAvailability = async (id, current) => {
     try {
@@ -44,7 +49,6 @@ export const AdminMenu = () => {
   };
 
   const deleteDish = async (id) => {
-    if (!window.confirm('Удалить блюдо?')) return;
     try {
       await api.delete(`/menu/dishes/${id}/`);
       setDishes(prev => prev.filter(d => d.id !== id));
@@ -55,7 +59,6 @@ export const AdminMenu = () => {
   };
 
   const deleteCategory = async (id) => {
-    if (!window.confirm('Удалить категорию? Все блюда в ней тоже удалятся!')) return;
     try {
       await api.delete(`/menu/categories/${id}/`);
       fetchData();
@@ -63,6 +66,26 @@ export const AdminMenu = () => {
     } catch (err) {
       toast.error('Ошибка');
     }
+  };
+
+  const requestDeleteDish = (id, name) => {
+    setConfirmAction(() => () => deleteDish(id));
+    setConfirmTitle('Удаление блюда');
+    setConfirmMessage(`Вы уверены, что хотите удалить блюдо "${name}"?`);
+    setConfirmModalOpen(true);
+  };
+
+  const requestDeleteCategory = (id, name) => {
+    setConfirmAction(() => () => deleteCategory(id));
+    setConfirmTitle('Удаление категории');
+    setConfirmMessage(`Вы уверены, что хотите удалить категорию "${name}"? Все блюда в ней тоже удалятся!`);
+    setConfirmModalOpen(true);
+  };
+
+  const handleConfirm = () => {
+    if (confirmAction) confirmAction();
+    setConfirmModalOpen(false);
+    setConfirmAction(null);
   };
 
   const saveDish = async (e) => {
@@ -106,10 +129,22 @@ export const AdminMenu = () => {
   return (
     <div className="bg-phoenix-dark min-h-screen py-12">
       <Toaster />
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => setConfirmModalOpen(false)}
+        onConfirm={handleConfirm}
+        title={confirmTitle}
+        message={confirmMessage}
+        confirmText="Да, удалить"
+        cancelText="Отмена"
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Кнопка обновления и заголовок */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-phoenix-gold">Управление меню</h1>
-          <button onClick={fetchData} className="bg-phoenix-card border border-phoenix-gold/30 rounded-xl p-2 text-phoenix-gold"><RefreshCw className="w-5 h-5" /></button>
+          <button onClick={fetchData} className="bg-phoenix-card border border-phoenix-gold/30 rounded-xl p-2 text-phoenix-gold hover:bg-phoenix-gold/20">
+            <RefreshCw className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Категории */}
@@ -119,11 +154,17 @@ export const AdminMenu = () => {
             {categories.map(cat => (
               <div key={cat.id} className="bg-phoenix-card rounded-xl p-3 flex items-center gap-3 border border-phoenix-gold/20">
                 <span className="text-phoenix-text">{cat.name}</span>
-                <button onClick={() => { setEditingCategory(cat.id); setCategoryForm({ name: cat.name, description: cat.description, sort_order: cat.sort_order }); }} className="text-phoenix-gold hover:bg-phoenix-gold/20 p-1 rounded"><Edit2 className="w-4 h-4" /></button>
-                <button onClick={() => deleteCategory(cat.id)} className="text-red-400 hover:bg-red-500/20 p-1 rounded"><Trash2 className="w-4 h-4" /></button>
+                <button onClick={() => { setEditingCategory(cat.id); setCategoryForm({ name: cat.name, description: cat.description, sort_order: cat.sort_order }); }} className="text-phoenix-gold hover:bg-phoenix-gold/20 p-1 rounded">
+                  <Edit2 className="w-4 h-4" />
+                </button>
+                <button onClick={() => requestDeleteCategory(cat.id, cat.name)} className="text-red-400 hover:bg-red-500/20 p-1 rounded">
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             ))}
-            <button onClick={() => setEditingCategory('new')} className="bg-phoenix-gold text-phoenix-dark px-4 py-2 rounded-full flex items-center gap-1"><Plus className="w-4 h-4" /> Добавить категорию</button>
+            <button onClick={() => setEditingCategory('new')} className="bg-phoenix-gold text-phoenix-dark px-4 py-2 rounded-full flex items-center gap-1">
+              <Plus className="w-4 h-4" /> Добавить категорию
+            </button>
           </div>
           {(editingCategory === 'new' || editingCategory) && (
             <form onSubmit={saveCategory} className="bg-phoenix-card p-5 rounded-2xl border border-phoenix-gold/20 mt-4">
@@ -154,13 +195,19 @@ export const AdminMenu = () => {
                     <button onClick={() => toggleAvailability(dish.id, dish.is_available)} className="text-phoenix-text-muted hover:text-phoenix-gold">
                       {dish.is_available ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
                     </button>
-                    <button onClick={() => { setEditingDish(dish.id); setFormData({ name: dish.name, description: dish.description, price: dish.price, weight: dish.weight, category: dish.category, image_url: dish.image_url || '', is_available: dish.is_available }); }} className="text-phoenix-gold"><Edit2 className="w-5 h-5" /></button>
-                    <button onClick={() => deleteDish(dish.id)} className="text-red-400"><Trash2 className="w-5 h-5" /></button>
+                    <button onClick={() => { setEditingDish(dish.id); setFormData({ name: dish.name, description: dish.description, price: dish.price, weight: dish.weight, category: dish.category, image_url: dish.image_url || '', is_available: dish.is_available }); }} className="text-phoenix-gold">
+                      <Edit2 className="w-5 h-5" />
+                    </button>
+                    <button onClick={() => requestDeleteDish(dish.id, dish.name)} className="text-red-400">
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
-            <button onClick={() => setEditingDish('new')} className="bg-phoenix-card border border-dashed border-phoenix-gold/40 rounded-xl p-4 flex items-center justify-center text-phoenix-gold hover:bg-phoenix-gold/10"><Plus className="w-5 h-5 mr-2" /> Добавить блюдо</button>
+            <button onClick={() => setEditingDish('new')} className="bg-phoenix-card border border-dashed border-phoenix-gold/40 rounded-xl p-4 flex items-center justify-center text-phoenix-gold hover:bg-phoenix-gold/10">
+              <Plus className="w-5 h-5 mr-2" /> Добавить блюдо
+            </button>
           </div>
         </div>
       </div>
@@ -180,7 +227,10 @@ export const AdminMenu = () => {
                 {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
               </select>
               <input type="url" placeholder="URL изображения" value={formData.image_url} onChange={e => setFormData({...formData, image_url: e.target.value})} className="w-full px-4 py-2 rounded-xl bg-phoenix-dark border border-phoenix-gold/30 text-phoenix-text" />
-              <div className="flex items-center gap-2"><input type="checkbox" checked={formData.is_available} onChange={e => setFormData({...formData, is_available: e.target.checked})} /><span className="text-phoenix-text">Доступно в меню</span></div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" checked={formData.is_available} onChange={e => setFormData({...formData, is_available: e.target.checked})} />
+                <span className="text-phoenix-text">Доступно в меню</span>
+              </div>
               <div className="flex gap-3">
                 <button type="submit" className="bg-phoenix-gold text-phoenix-dark px-4 py-2 rounded-full">Сохранить</button>
                 <button type="button" onClick={() => { setEditingDish(null); setFormData({ name: '', description: '', price: '', weight: '', category: '', image_url: '', is_available: true }); }} className="bg-phoenix-dark border border-phoenix-gold/30 text-phoenix-text px-4 py-2 rounded-full">Отмена</button>

@@ -3,7 +3,7 @@ import api from '../api/api';
 import { CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 
-export const AdminReservations = () => {
+export const ManagerReservations = () => {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
@@ -70,7 +70,9 @@ export const AdminReservations = () => {
               <option value="Confirmed">Подтверждённые</option>
               <option value="Canceled">Отменённые</option>
             </select>
-            <button onClick={fetchReservations} className="bg-phoenix-card border border-phoenix-gold/30 rounded-xl p-2 text-phoenix-gold"><RefreshCw className="w-5 h-5" /></button>
+            <button onClick={fetchReservations} className="bg-phoenix-card border border-phoenix-gold/30 rounded-xl p-2 text-phoenix-gold hover:bg-phoenix-gold/20">
+              <RefreshCw className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
@@ -91,12 +93,18 @@ export const AdminReservations = () => {
                 <div className="flex items-center gap-2">
                   {res.status === 'New' && (
                     <>
-                      <button onClick={() => updateStatus(res.id, 'Confirmed')} className="bg-green-500/20 text-green-300 hover:bg-green-500/30 p-2 rounded-full"><CheckCircle className="w-5 h-5" /></button>
-                      <button onClick={() => updateStatus(res.id, 'Canceled')} className="bg-red-500/20 text-red-300 hover:bg-red-500/30 p-2 rounded-full"><XCircle className="w-5 h-5" /></button>
+                      <button onClick={() => updateStatus(res.id, 'Confirmed')} className="bg-green-500/20 text-green-300 hover:bg-green-500/30 p-2 rounded-full">
+                        <CheckCircle className="w-5 h-5" />
+                      </button>
+                      <button onClick={() => updateStatus(res.id, 'Canceled')} className="bg-red-500/20 text-red-300 hover:bg-red-500/30 p-2 rounded-full">
+                        <XCircle className="w-5 h-5" />
+                      </button>
                     </>
                   )}
                   {res.status === 'Confirmed' && (
-                    <button onClick={() => updateStatus(res.id, 'Canceled')} className="bg-red-500/20 text-red-300 hover:bg-red-500/30 p-2 rounded-full"><XCircle className="w-5 h-5" /></button>
+                    <button onClick={() => updateStatus(res.id, 'Canceled')} className="bg-red-500/20 text-red-300 hover:bg-red-500/30 p-2 rounded-full">
+                      <XCircle className="w-5 h-5" />
+                    </button>
                   )}
                   {res.status === 'Canceled' && (
                     <span className="text-phoenix-text-muted text-sm">Отменено</span>
@@ -105,7 +113,9 @@ export const AdminReservations = () => {
               </div>
             </div>
           ))}
-          {filtered.length === 0 && <div className="text-center py-12 text-phoenix-text-muted">Нет бронирований</div>}
+          {filtered.length === 0 && (
+            <div className="text-center py-12 text-phoenix-text-muted">Нет бронирований</div>
+          )}
         </div>
       </div>
     </div>

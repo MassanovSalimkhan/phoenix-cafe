@@ -26,6 +26,16 @@ export const Header = () => {
     { path: '/about', label: 'О НАС' },
   ];
 
+  // Ссылки панели менеджера (видны только если роль manager или admin)
+  const managerLinks = [
+    { path: '/manager/orders', label: 'Заказы' },
+    { path: '/manager/reservations', label: 'Брони' },
+    { path: '/manager/menu', label: 'Меню' },
+    { path: '/manager/reports', label: 'Отчёты' },
+  ];
+
+  const hasManagerAccess = user?.role === 'manager' || user?.role === 'admin';
+
   return (
     <header className="bg-phoenix-dark border-b border-phoenix-gold/20 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
@@ -47,8 +57,17 @@ export const Header = () => {
                 <ShoppingCart className="w-5 h-5" />
                 {cartItemsCount > 0 && <span className="absolute -top-2 -right-2 bg-phoenix-gold text-phoenix-dark text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">{cartItemsCount}</span>}
               </Link>
-              {user?.role === 'manager' && (
-                <Link to="/admin/orders" className="text-phoenix-text-muted hover:text-phoenix-gold transition">Админка</Link>
+              {hasManagerAccess && (
+                <div className="relative group">
+                  <button className="text-phoenix-text-muted hover:text-phoenix-gold transition">Панель</button>
+                  <div className="absolute right-0 mt-2 w-48 bg-phoenix-card rounded-xl shadow-lg border border-phoenix-gold/20 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                    {managerLinks.map(link => (
+                      <Link key={link.path} to={link.path} className="block px-4 py-2 text-sm text-phoenix-text hover:bg-phoenix-gold/10 hover:text-phoenix-gold">
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
               )}
               <Link to="/profile" className={`${isActive('/profile')} transition`}>{user?.full_name || 'Профиль'}</Link>
               <button onClick={handleLogout} className="bg-phoenix-gold text-phoenix-dark hover:bg-phoenix-gold-light px-3 py-1 rounded-full text-sm font-bold transition">Выйти</button>
@@ -58,6 +77,7 @@ export const Header = () => {
           )}
         </div>
 
+        {/* Мобильное меню */}
         <div className="flex md:hidden items-center space-x-4">
           {isAuthenticated && (
             <Link to="/cart" className="relative text-phoenix-text-muted hover:text-phoenix-gold transition">
@@ -84,8 +104,15 @@ export const Header = () => {
           {isAuthenticated && (
             <>
               <Link to="/profile" className={`block py-2 ${isActive('/profile')} transition`} onClick={toggleMobileMenu}>Профиль</Link>
-              {user?.role === 'manager' && (
-                <Link to="/admin/orders" className="block py-2 text-phoenix-text-muted hover:text-phoenix-gold" onClick={toggleMobileMenu}>Админка</Link>
+              {hasManagerAccess && (
+                <>
+                  <div className="text-phoenix-text-muted text-sm font-semibold mt-2 mb-1">Панель</div>
+                  {managerLinks.map(link => (
+                    <Link key={link.path} to={link.path} className="block py-1 pl-4 text-sm text-phoenix-text hover:text-phoenix-gold" onClick={toggleMobileMenu}>
+                      {link.label}
+                    </Link>
+                  ))}
+                </>
               )}
               <button onClick={() => { handleLogout(); toggleMobileMenu(); }} className="block w-full text-left py-2 text-red-400">Выйти</button>
             </>
