@@ -12,7 +12,7 @@ class DishListView(generics.ListAPIView):
     serializer_class = DishSerializer
     permission_classes = [permissions.AllowAny]
 
-class DishDetailView(generics.RetrieveAPIView):
+class DishDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Dish.objects.all()
     serializer_class = DishSerializer
     permission_classes = [permissions.AllowAny]

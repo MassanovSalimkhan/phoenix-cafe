@@ -21,6 +21,7 @@ class Order(models.Model):
     delivery_type = models.CharField(max_length=20, choices=DELIVERY_CHOICES)
     delivery_address = models.TextField(blank=True)
     comment = models.TextField(blank=True)
+    user_order_number = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"Order {self.id} by {self.user.phone}"

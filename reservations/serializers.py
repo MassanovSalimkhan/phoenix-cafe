@@ -18,4 +18,4 @@ class ReservationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reservation
         fields = ('id', 'user', 'table', 'table_number', 'zone_name', 'date', 'start_time', 'end_time', 'guests', 'status', 'comment')
-        read_only_fields = ('id', 'user', 'status')
+        read_only_fields = ('id', 'user')
